@@ -1,8 +1,9 @@
-from products import Product
-
 class Store:
-    def __init__(self):
-        self.products = []
+    def __init__(self, products=None):
+        if products is None:
+            self.products = []
+        else:
+            self.products = products
 
     def add_product(self, product):
         self.products.append(product)
