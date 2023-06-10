@@ -10,17 +10,31 @@ class Product:
         self.price = price
         self.quantity = quantity
         self.active = True
+        self.promotion = None
 
-    def buy(self, quantity):
-        if quantity > self.quantity:  # Trying to buy more than available
-            raise ValueError("Insufficient quantity in stock")
-        self.quantity -= quantity
-        if self.quantity == 0:
-            self.active = False
-        return self.price * quantity
+    def set_promotion(self, promotion):
+        self.promotion = promotion
+
+    def get_promotion(self):
+        return self.promotion
 
     def show(self):
-        return f"{self.name}, Price: ${self.price}, Quantity: {self.quantity}"
+        promo = f", Promotion: {self.promotion.name}" if self.promotion else ", Promotion: None"
+        return f"{self.name}, Price: ${self.price}, Quantity: {self.quantity}{promo}"
+
+    def buy(self, quantity):
+        if quantity > self.quantity:
+            raise ValueError("Requested quantity exceeds available stock")
+
+        self.quantity -= quantity
+
+        if self.quantity == 0:
+            self.active = False
+
+        if self.promotion:
+            return self.promotion.apply_promotion(self, quantity)
+        else:
+            return self.price * quantity
 
     def is_active(self):
         return self.active
@@ -31,12 +45,16 @@ class NonStockedProduct(Product):
         super().__init__(name, price, 0)  # 0 quantity, never changes
 
     def buy(self, quantity):
-        # Quantity always remains zero, so no need to subtract from it
-        return self.price * quantity
+        # No need to modify quantity as these aren't stocked products
+        # Just calculate price and return
+        if self.promotion:
+            return self.promotion.apply_promotion(self, quantity)
+        else:
+            return self.price * quantity
 
     def show(self):
-        # Overridden show method to indicate unlimited quantity
-        return f"{self.name}, Price: ${self.price}, Quantity: Unlimited"
+        promo = f", Promotion: {self.promotion.name}" if self.promotion else ", Promotion: None"
+        return f"{self.name}, Price: ${self.price}, Quantity: Unlimited{promo}"
 
 
 class LimitedProduct(Product):
@@ -47,8 +65,9 @@ class LimitedProduct(Product):
     def buy(self, quantity):
         if quantity > self.maximum:
             raise ValueError("Quantity exceeds the maximum limit for this product")
+
         return super().buy(quantity)
 
     def show(self):
-        # Overridden show method to indicate limited quantity per order
-        return f"{self.name}, Price: ${self.price}, Limited to {self.maximum} per order!"
+        promo = f", Promotion: {self.promotion.name}" if self.promotion else ", Promotion: None"
+        return f"{self.name}, Price: ${self.price}, Limited to {self.maximum} per order!{promo}"
