@@ -1,6 +1,3 @@
-from store import Store
-
-
 class Menu:
     def __init__(self, store):
         self.store = store
